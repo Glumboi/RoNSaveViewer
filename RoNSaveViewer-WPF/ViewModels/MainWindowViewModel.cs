@@ -1,6 +1,7 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using Microsoft.Win32;
 using RoNSaveViewer_WPF.CustomObjects;
+using RoNSaveViewer_WPF.RoNSaveToolSuit;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,6 +24,7 @@ namespace RoNSaveViewer_WPF.ViewModels
             set
             {
                 SetProperty(ref _filePath, value);
+
                 int indexStart = _filePath.LastIndexOf('\\');
                 int length = _filePath.Length - indexStart;
                 FileName = _filePath?.Substring(indexStart + 1, length - 1);
@@ -34,15 +36,20 @@ namespace RoNSaveViewer_WPF.ViewModels
             }
         }
 
-        private string _fileName = "RoNSaveViewer ";
+        private string _fileName = "No File";
 
         public string FileName
         {
             get => _fileName;
             set
             {
-                SetProperty(ref _fileName, "RoNSaveViewer, editing: " + value);
+                SetProperty(ref _fileName, value);
             }
+        }
+
+        public string FileNameWindowTitle
+        {
+            get => FileName;
         }
 
         public SaveGame _roNSaveGame;
@@ -62,6 +69,24 @@ namespace RoNSaveViewer_WPF.ViewModels
             }
         }
 
+        private void AddStructPropertyToEditField(UProperty prop)
+        {
+            var val = prop.Value;
+            var props = val.GetType().GetProperties();
+
+            foreach (var item in props)
+            {
+                if (item.Name == "Properties")
+                {
+                    IEnumerable itemEnum = item.GetValue(val) as IEnumerable;
+                    foreach (UProperty item2 in itemEnum)
+                    {
+                        SaveObjects.Add(item2);
+                    }
+                }
+            }
+        }
+
         public RoNSaveObject _selectedRoNObject;
 
         public RoNSaveObject SelectedRoNObject
@@ -70,31 +95,44 @@ namespace RoNSaveViewer_WPF.ViewModels
             set
             {
                 SetProperty(ref _selectedRoNObject, value);
-                EditableRoNSaveObjects.Clear();
+                SaveObjects.Clear();
                 if (value != null)
                 {
                     switch (value.OBJUProperty.Type)
                     {
                         case "StructProperty":
-                            var val = value.OBJUProperty.Value;
-                            var props = val.GetType().GetProperties();
+                            AddStructPropertyToEditField(value.OBJUProperty);
+                            break;
 
-                            foreach (var item in props)
+                        //Partial implementation
+                        case "MapProperty":
+                            object originalObject = value.OBJUProperty.Value;
+
+                            if (originalObject is List<KeyValuePair<UProperty, UProperty>>)
                             {
-                                if (item.Name == "Properties")
+                                List<KeyValuePair<UProperty, UProperty>> originalList = originalObject as List<KeyValuePair<UProperty, UProperty>>;
+
+                                foreach (var pair in originalList)
                                 {
-                                    IEnumerable itemEnum = item.GetValue(val) as IEnumerable;
-                                    foreach (UProperty item2 in itemEnum)
+                                    if (pair.Value.Type == "StructProperty")
                                     {
-                                        EditableRoNSaveObjects.Add(new EditableRoNSaveObject(item2));
+                                        AddStructPropertyToEditField(pair.Value);
                                     }
+
+                                    SaveObjects.Add(pair.Key);
+                                    SaveObjects.Add(pair.Value);
                                 }
                             }
-                            EditableRoNSaveObjects.Add(new EditableRoNSaveObject(value.OBJUProperty));
+                            else
+                            {
+                                Console.WriteLine("The object is not of type List<KeyValuePair<UProperty, UProperty>>");
+                            }
+
                             break;
 
                         default:
-                            EditableRoNSaveObjects.Add(new EditableRoNSaveObject(value.OBJUProperty));
+                            SaveObjects.Add(value.OBJUProperty);
+
                             break;
                     }
                 }
@@ -117,6 +155,14 @@ namespace RoNSaveViewer_WPF.ViewModels
             set => SetProperty(ref _editableRoNSaveObjects, value);
         }
 
+        public ObservableCollection<UProperty> _saveObjects = new();
+
+        public ObservableCollection<UProperty> SaveObjects
+        {
+            get => _saveObjects;
+            set => SetProperty(ref _saveObjects, value);
+        }
+
         public ICommand OpenFileCommand { get; set; }
 
         public void CreateOpenFileCommand()
@@ -134,9 +180,39 @@ namespace RoNSaveViewer_WPF.ViewModels
             }
         }
 
+        public ICommand SaveFileCommand { get; set; }
+
+        public void CreateSaveFileCommand()
+        {
+            SaveFileCommand = new RelayCommand(SaveFile);
+        }
+
+        private void SaveFile()
+        {
+            Parallel.For(0, EditableRoNSaveObjects.Count, i =>
+            {
+                RoNSaveGame.Properties[i] = EditableRoNSaveObjects[i].OBJUProperty;
+            });
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.DefaultDirectory = FilePath;
+            saveFileDialog.Title = $"Save the new File";
+            saveFileDialog.FileName = FileName;
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                using (FileStream fs = File.Create(saveFileDialog.FileName))
+                {
+                    RoNSaveGame.WriteTo(fs);
+                }
+            }
+
+            Console.WriteLine(RoNSaveGame.ToString());
+        }
+
         public MainWindowViewModel()
         {
             CreateOpenFileCommand();
+            CreateSaveFileCommand();
         }
     }
 }

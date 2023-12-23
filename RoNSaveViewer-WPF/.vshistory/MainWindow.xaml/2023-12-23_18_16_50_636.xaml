@@ -1,0 +1,67 @@
+﻿<Window
+    x:Class="RoNSaveViewer_WPF.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:VM="clr-namespace:RoNSaveViewer_WPF.ViewModels"
+    xmlns:cc="clr-namespace:RoNSaveViewer_WPF.CustomControls"
+    xmlns:co="clr-namespace:RoNSaveViewer_WPF.CustomObjects"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:e="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:e1="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:ib="clr-namespace:RoNSaveViewer_WPF.InteractionBehaviors"
+    xmlns:local="clr-namespace:RoNSaveViewer_WPF"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="{Binding FileName}"
+    Width="800"
+    Height="450"
+    mc:Ignorable="d">
+    <Window.DataContext>
+        <VM:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="File">
+                <MenuItem Command="{Binding OpenFileCommand}" Header="Open" />
+                <MenuItem Header="Save" />
+            </MenuItem>
+        </Menu>
+        <Border Grid.Row="1" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <TreeView DisplayMemberPath="OBJName" ItemsSource="{Binding RoNSaveObjects}">
+                    <e:Interaction.Behaviors>
+                        <ib:BindableSelectedItemBehavior SelectedItem="{Binding SelectedRoNObject, Mode=TwoWay}" />
+                    </e:Interaction.Behaviors>
+                </TreeView>
+                <Grid Grid.Column="1">
+                    <ListView ItemsSource="{Binding EditableRoNSaveObjects}">
+
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn
+                                    Width="150"
+                                    DisplayMemberBinding="{Binding OBJName}"
+                                    Header="Name" />
+                                <GridViewColumn
+                                    Width="150"
+                                    DisplayMemberBinding="{Binding Value}"
+                                    Header="Value" />
+                                <GridViewColumn
+                                    Width="150"
+                                    DisplayMemberBinding="{Binding Type}"
+                                    Header="Type" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

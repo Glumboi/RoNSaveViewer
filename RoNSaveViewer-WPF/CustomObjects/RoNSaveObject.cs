@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Xml.Linq;
 using UeSaveGame;
+using RoNSaveViewer_WPF.CustomControls;
 
 namespace RoNSaveViewer_WPF.CustomObjects
 {
@@ -17,7 +18,7 @@ namespace RoNSaveViewer_WPF.CustomObjects
 
         public RoNSaveObject(UProperty uProperty) : base()
         {
-            base.Header = uProperty.Name;
+            base.Header = uProperty.Name == string.Empty ? uProperty.Value : uProperty.Name;
             OBJName = uProperty.Name;
             OBJUProperty = uProperty;
 
@@ -33,24 +34,21 @@ namespace RoNSaveViewer_WPF.CustomObjects
                     break;
             }
         }
-
-        public bool Equals(RoNSaveObject other)
-        {
-            throw new NotImplementedException();
-        }
     }
 
-    internal class EditableRoNSaveObject : ListBoxItem
+    internal class EditableRoNSaveObject : DumpableListEntry
     {
         public UProperty OBJUProperty { get; set; }
         public string OBJName { get; set; }
         public string Value { get; set; }
+        public string Type { get; set; }
 
         public EditableRoNSaveObject(UProperty uProperty) : base()
         {
             base.Content = uProperty.Value;
             OBJName = uProperty.Name;
-            Value = uProperty.Value?.ToString() ?? "NULL";
+            Value = uProperty.Value?.ToString() ?? "[READ ERROR]";
+            Type = uProperty.Value?.GetType().ToString() ?? "[READ ERROR]";
             OBJUProperty = uProperty;
         }
     }

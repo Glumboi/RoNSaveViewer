@@ -37,7 +37,7 @@ namespace UeSaveGame
         /// </summary>
         public IList<UProperty>? Properties { get; private set; }
 
-        private SaveGame()
+        public SaveGame()
         {
         }
 
