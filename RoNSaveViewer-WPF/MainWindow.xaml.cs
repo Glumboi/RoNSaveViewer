@@ -1,7 +1,6 @@
 ﻿using RoNSaveViewer_WPF.CustomObjects;
 using RoNSaveViewer_WPF.ViewModels;
 using System.Diagnostics;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -13,13 +12,15 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 using UeSaveGame;
+using Wpf.Ui.Controls;
+using DataGrid = Wpf.Ui.Controls.DataGrid;
 
 namespace RoNSaveViewer_WPF
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : UiWindow
     {
         private MainWindowViewModel vm;
 
@@ -31,8 +32,8 @@ namespace RoNSaveViewer_WPF
 
         private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            DataGrid dataGrid = sender as DataGrid;
-            var textBox = (TextBox)e.EditingElement;
+            Wpf.Ui.Controls.DataGrid dataGrid = sender as Wpf.Ui.Controls.DataGrid;
+            var textBox = (System.Windows.Controls.TextBox)e.EditingElement;
 
             if (dataGrid != null && e.EditAction == DataGridEditAction.Commit)
             {
@@ -42,48 +43,26 @@ namespace RoNSaveViewer_WPF
                 {
                     Type valueType = vm.SaveObjects[selectedIndex].Value.GetType();
 
-                    Dictionary<Type, int> typeDict = new Dictionary<Type, int>
-            {
-                { typeof(int), 0 },
-                { typeof(FString), 1 },
-                { typeof(bool), 2 },
-            };
-
-                    if (typeDict.TryGetValue(valueType, out int typeIndex))
+                    if (valueType == null || string.IsNullOrWhiteSpace(textBox.Text))
                     {
-                        switch (typeIndex)
-                        {
-                            case 0:
-                                // Handle Int32
-                                int intValue;
-                                if (int.TryParse(textBox.Text, out intValue))
-                                {
-                                    vm.SaveObjects[selectedIndex].Value = intValue;
-                                }
-                                break;
-
-                            case 1:
-                                // Handle FString
-                                vm.SaveObjects[selectedIndex].Value = new FString(textBox.Text);
-                                break;
-
-                            case 2:
-                                // Handle bool
-                                bool boolValue;
-                                if (bool.TryParse(textBox.Text, out boolValue))
-                                {
-                                    vm.SaveObjects[selectedIndex].Value = boolValue;
-                                }
-                                break;
-
-                            default:
-                                break;
-                        }
+                        e.Cancel = true;
+                        return;
                     }
-                    else
+
+                    if (valueType == typeof(FString))
                     {
-                        // Handle unknown type
-                        Debug.WriteLine("Unknown type");
+                        vm.SaveObjects[selectedIndex].Value = new FString(textBox.Text);
+                        return;
+                    }
+
+                    try
+                    {
+                        var convertedText = Convert.ChangeType(textBox.Text, valueType);
+                        vm.SaveObjects[selectedIndex].Value = convertedText;
+                    }
+                    catch (Exception)
+                    {
+                        System.Windows.MessageBox.Show("Wrong Type!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
