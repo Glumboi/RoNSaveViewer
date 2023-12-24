@@ -12,7 +12,7 @@
     xmlns:local="clr-namespace:RoNSaveViewer_WPF"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="{Binding Path=FileName, StringFormat='Currently editing: {0:yyyy-MM-dd HH:mm:ss}'}"
+    Title="{Binding Path=FileName}"
     Width="1200"
     Height="800"
     Background="#2d2d2d"
@@ -41,9 +41,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <ui:TitleBar
-            Icon="Assets/Icon.png"
             x:Name="TitleBar"
-            Title="{Binding Path=FileName, StringFormat='Currently editing: {0:yyyy-MM-dd HH:mm:ss}'}"
+            Title="{Binding FileNameWindowTitle}"
             UseSnapLayout="True" />
         <Menu Grid.Row="1">
             <ui:MenuItem Header="File">
@@ -65,13 +64,9 @@
         <Grid Grid.Row="2" Visibility="{Binding Path=SplashVisibility}">
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                
-                <Image RenderOptions.BitmapScalingMode="HighQuality" Width="150" Height="150" Source="Assets/Icon.png"></Image>
-                
-                <TextBlock Margin="0 0 0 8" FontSize="23" FontWeight="Bold">
+                <TextBlock FontSize="23" FontWeight="Bold">
                     No File selected...
                 </TextBlock>
-                
                 <ui:Button
                     HorizontalAlignment="Stretch"
                     Command="{Binding OpenFileCommand}"

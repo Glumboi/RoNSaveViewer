@@ -298,7 +298,7 @@ namespace RoNSaveViewer_WPF.ViewModels
                 });
 
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.InitialDirectory = FilePath;
+                saveFileDialog.DefaultDirectory = FilePath;
                 saveFileDialog.Title = $"Save the new File";
                 saveFileDialog.FileName = FileName;
                 if (saveFileDialog.ShowDialog() == true)

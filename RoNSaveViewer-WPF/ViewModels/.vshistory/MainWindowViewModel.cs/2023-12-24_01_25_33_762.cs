@@ -1,12 +1,14 @@
-﻿using System.Collections;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Windows;
-using System.Windows.Input;
-using GalaSoft.MvvmLight.Command;
+﻿using GalaSoft.MvvmLight.Command;
 using Microsoft.Win32;
 using RoNSaveViewer_WPF.CustomObjects;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
 using UeSaveGame;
 using UeSaveGame.PropertyTypes;
 
@@ -62,6 +64,11 @@ namespace RoNSaveViewer_WPF.ViewModels
             {
                 SetProperty(ref _fileName, value);
             }
+        }
+
+        public string FileNameWindowTitle
+        {
+            get => FileName;
         }
 
         public SaveGame _roNSaveGame;
@@ -298,7 +305,7 @@ namespace RoNSaveViewer_WPF.ViewModels
                 });
 
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.InitialDirectory = FilePath;
+                saveFileDialog.DefaultDirectory = FilePath;
                 saveFileDialog.Title = $"Save the new File";
                 saveFileDialog.FileName = FileName;
                 if (saveFileDialog.ShowDialog() == true)
